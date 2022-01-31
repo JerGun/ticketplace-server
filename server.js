@@ -2,7 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
-const router = require("./routes/server.routes");
+const user = require("./routes/user.routes");
+const email = require("./routes/email.routes");
 
 const app = express();
 
@@ -44,7 +45,8 @@ app.get("/", (req, res) => {
   res.send("### Ticketplace Server Started! ###");
 });
 
-app.use("/", router);
+app.use("/", user);
+app.use("/", email);
 
 const PORT = process.env.PORT || 9000;
 if (process.env.NODE_ENV !== "test") {
