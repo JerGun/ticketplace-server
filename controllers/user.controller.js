@@ -1,4 +1,3 @@
-const res = require("express/lib/response");
 const UserModel = require("../models/user.model");
 
 exports.findAll = (req, res) => {};
