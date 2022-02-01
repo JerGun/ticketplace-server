@@ -11,13 +11,13 @@ const msgs = {
 };
 
 exports.collectEmail = (req, res) => {
-  const { email } = req.body;
+  const { address, name, email } = req.body;
 
   UserModel.findOne({ email })
     .then((user) => {
       // We have a new user! Send them a confirmation email.
       if (!user) {
-        UserModel.create({ email })
+        UserModel.create({ address, name, email })
           .then((newUser) =>
             sendEmail(newUser.email, templates.confirm(newUser._id))
           )
@@ -27,7 +27,7 @@ exports.collectEmail = (req, res) => {
 
       // We have already seen this email address. But the user has not
       // clicked on the confirmation link. Send another confirmation email.
-      else if (user && !user.confirmed) {
+      else if (user && !user.verify) {
         sendEmail(user.email, templates.confirm(user._id)).then(() =>
           res.json({ msg: msgs.resend })
         );
@@ -38,7 +38,9 @@ exports.collectEmail = (req, res) => {
         res.json({ msg: msgs.alreadyConfirmed });
       }
     })
-    .catch((err) => console.log(err));
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
 };
 
 // The callback that is invoked when the user visits the confirmation
@@ -58,9 +60,11 @@ exports.confirmEmail = (req, res) => {
       // The user exists but has not been confirmed. We need to confirm this
       // user and let them know their email address has been confirmed.
       else if (user && !user.confirmed) {
-        UserModel.findByIdAndUpdate(id, { confirmed: true })
+        UserModel.findByIdAndUpdate(id, { verify: true })
           .then(() => res.json({ msg: msgs.confirmed }))
-          .catch((err) => console.log(err));
+          .catch((e) => {
+            res.status(500).send({ message: e.message });
+          });
       }
 
       // The user has already confirmed this email address.
@@ -68,5 +72,7 @@ exports.confirmEmail = (req, res) => {
         res.json({ msg: msgs.alreadyConfirmed });
       }
     })
-    .catch((err) => console.log(err));
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
 };
