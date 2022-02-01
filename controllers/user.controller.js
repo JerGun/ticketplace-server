@@ -11,13 +11,7 @@ exports.findAll = (req, res) => {
 exports.findAddress = (req, res) => {
   const { address } = req.params;
   UserModel.findOne({ address })
-    .then((user) => {
-      if (!user) {
-        res.json(false);
-      } else {
-        res.json(user.verify);
-      }
-    })
+    .then((user) => res.json(user))
     .catch((e) => {
       res.status(500).send({ message: e.message });
     });
@@ -34,4 +28,18 @@ exports.add = (req, res) => {
     });
 };
 
-exports.edit = (req, res) => {};
+exports.edit = (req, res) => {
+  const payload = req.body;
+  UserModel.findOneAndUpdate(
+    { address: payload.address },
+    {
+      $set: {
+        name: payload.name,
+      },
+    }
+  )
+    .then(res.status(200).end())
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
+};

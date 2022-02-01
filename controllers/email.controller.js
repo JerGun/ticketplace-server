@@ -1,3 +1,4 @@
+const res = require("express/lib/response");
 const UserModel = require("../models/user.model");
 const sendEmail = require("../templates/email.send");
 const templates = require("../templates/email.templates");
@@ -37,6 +38,28 @@ exports.collectEmail = (req, res) => {
       else {
         res.json({ msg: msgs.alreadyConfirmed });
       }
+    })
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
+};
+
+exports.updateEmail = (req, res) => {
+  const payload = req.body;
+
+  UserModel.findOneAndUpdate(
+    { address: payload.address },
+    {
+      $set: {
+        name: payload.name,
+        email: payload.email,
+        verify: false,
+      },
+    }
+  )
+    .then((user) => {
+      sendEmail(payload.email, templates.confirm(user._id));
+      res.json({ msg: msgs.confirm });
     })
     .catch((e) => {
       res.status(500).send({ message: e.message });
