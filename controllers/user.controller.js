@@ -30,11 +30,22 @@ exports.add = (req, res) => {
 
 exports.edit = (req, res) => {
   const payload = req.body;
+  UserModel.findOne({ address: payload.address }).then((user) => {
+    if (!user) {
+      UserModel.create({
+        address: payload.address,
+        img: payload.img,
+      })
+        .then(res.status(201).end())
+        .catch((err) => console.log(err));
+    }
+  });
   UserModel.findOneAndUpdate(
     { address: payload.address },
     {
       $set: {
         name: payload.name,
+        img: payload.img,
       },
     }
   )

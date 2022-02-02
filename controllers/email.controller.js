@@ -5,16 +5,16 @@ const templates = require("../templates/email.templates");
 
 const msgs = {
   confirm: "Email sent, please check your inbox to confirm",
-  confirmed: "Your email is confirmed!",
+  confirmed: "confirmed",
   resend: "Confirmation email resent, maybe check your spam?",
-  couldNotFind: "Could not find you!",
-  alreadyConfirmed: "Your email was already confirmed",
+  couldNotFind: "couldNotFind",
+  alreadyConfirmed: "alreadyConfirmed",
 };
 
 exports.collectEmail = (req, res) => {
   const { address, name, email } = req.body;
 
-  UserModel.findOne({ email })
+  UserModel.findOne({ address })
     .then((user) => {
       // We have a new user! Send them a confirmation email.
       if (!user) {
@@ -24,8 +24,25 @@ exports.collectEmail = (req, res) => {
           )
           .then(() => res.json({ msg: msgs.confirm }))
           .catch((err) => console.log(err));
+      } else if (user && !user.email) {
+        UserModel.findOneAndUpdate(
+          { address: address },
+          {
+            $set: {
+              name: name,
+              email: email,
+              verify: false,
+            },
+          }
+        )
+          .then((user) => {
+            sendEmail(user.email, templates.confirm(user._id));
+            res.json({ msg: msgs.confirm });
+          })
+          .catch((e) => {
+            res.status(500).send({ message: e.message });
+          });
       }
-
       // We have already seen this email address. But the user has not
       // clicked on the confirmation link. Send another confirmation email.
       else if (user && !user.verify) {
