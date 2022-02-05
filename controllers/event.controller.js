@@ -1,6 +1,15 @@
 const EventModel = require("../models/event.model");
 const UserModel = require("../models/user.model");
 
+exports.findByTokenId = (req, res) => {
+  const { tokenId } = req.params;
+  EventModel.find({ tokenId: tokenId })
+    .then((user) => res.json(user))
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
+};
+
 exports.add = (req, res) => {
   const payload = req.body;
 
