@@ -10,18 +10,22 @@ const eventSchema = new Schema(
     fromAccount: {
       address: String,
       name: String,
+      isVerify: Boolean,
     },
     toAccount: {
       address: String,
       name: String,
+      isVerify: Boolean,
     },
     seller: {
       address: String,
       name: String,
+      isVerify: Boolean,
     },
     buyer: {
       address: String,
       name: String,
+      isVerify: Boolean,
     },
     transaction: String,
   },
