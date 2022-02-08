@@ -40,7 +40,6 @@ exports.findByTokenList = (req, res) => {
               let metaFilter = meta.filter((el) => {
                 return el.address === user[i].address;
               });
-              console.log(metaFilter);
               for (let j = 0; j < metaFilter.length; j++) {
                 metaFilter[j].name = user[i].name;
               }
@@ -77,41 +76,80 @@ exports.add = (req, res) => {
         res.status(500).send({ message: err.message });
       });
   } else {
-    UserModel.findOne({ address: payload.fromAccount.address })
-      .then((fromUser) => {
-        if (fromUser) {
-          payload.fromAccount.name = fromUser.name;
-        } else {
-          payload.fromAccount.name = payload.fromAccount.address
-            .slice(2, 9)
-            .toUpperCase();
-        }
-        event = new EventModel(payload);
-        if (payload.toAccount) {
-          UserModel.findOne({ address: payload.toAccount.address })
-            .then((toUser) => {
-              if (toUser) {
-                payload.toAccount.name = toUser.name;
-              } else {
-                payload.toAccount.name = payload.toAccount.address
-                  .slice(2, 9)
-                  .toUpperCase();
-              }
-              event = new EventModel(payload);
-            })
+    if (payload.fromAccount && payload.toAccount) {
+      let address = [payload.fromAccount.address, payload.toAccount.address];
+      UserModel.find({ address: { $in: address } })
+        .then((user) => {
+          let userFilter;
+          userFilter = user.filter((el) => {
+            return el.address === payload.fromAccount.address;
+          });
+          if (userFilter.length > 0)
+            payload.fromAccount.name = userFilter[0].name;
+          else
+            payload.fromAccount.name = payload.fromAccount.address
+              .slice(2, 9)
+              .toUpperCase();
+
+          userFilter = user.filter((el) => {
+            return el.address === payload.toAccount.address;
+          });
+          if (userFilter.length > 0)
+            payload.toAccount.name = userFilter[0].name;
+          else
+            payload.toAccount.name = payload.toAccount.address
+              .slice(2, 9)
+              .toUpperCase();
+
+          event = new EventModel(payload);
+          event
+            .save()
+            .then(res.status(201).end())
             .catch((err) => {
               res.status(500).send({ message: err.message });
             });
-        }
-        event
-          .save()
-          .then(res.status(201).end())
-          .catch((err) => {
-            res.status(500).send({ message: err.message });
-          });
-      })
-      .catch((err) => {
-        res.status(500).send({ message: err.message });
-      });
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    } else if (payload.fromAccount && !payload.toAccount) {
+      UserModel.findOne({ address: payload.fromAccount.address })
+        .then((user) => {
+          if (user) payload.fromAccount.name = user.name;
+          else
+            payload.fromAccount.name = payload.fromAccount.address
+              .slice(2, 9)
+              .toUpperCase();
+          event = new EventModel(payload);
+          event
+            .save()
+            .then(res.status(201).end())
+            .catch((err) => {
+              res.status(500).send({ message: err.message });
+            });
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    } else if (!payload.fromAccount && payload.toAccount) {
+      UserModel.findOne({ address: payload.toAccount.address })
+        .then((user) => {
+          if (user) payload.toAccount.name = user.name;
+          else
+            payload.toAccount.name = payload.toAccount.address
+              .slice(2, 9)
+              .toUpperCase();
+          event = new EventModel(payload);
+          event
+            .save()
+            .then(res.status(201).end())
+            .catch((err) => {
+              res.status(500).send({ message: err.message });
+            });
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    }
   }
 };
