@@ -12,7 +12,65 @@ exports.findAll = (req, res) => {
 exports.findByTokenId = (req, res) => {
   const { tokenId } = req.params;
   EventModel.find({ tokenId: tokenId })
-    .then((event) => res.json(event))
+    .then(async (events) => {
+      let newEvents = [];
+      let payload;
+      for (let i = 0; i < events.length; i++) {
+        payload = events[i];
+        if (payload.isMint) {
+          let user = await UserModel.findOne({
+            address: payload.toAccount.address,
+          });
+          payload.toAccount.name = user.name;
+          newEvents.push(payload);
+        } else {
+          if (
+            Object.keys(payload.fromAccount).length === 0 &&
+            Object.keys(payload.toAccount).length === 0
+          ) {
+            let fromUser = await UserModel.findOne({
+              address: payload.fromAccount.address,
+            });
+            let toUser = await UserModel.findOne({
+              address: payload.toAccount.address,
+            });
+            if (fromUser) payload.fromAccount.name = fromUser.name;
+            else
+              payload.fromAccount.name = payload.fromAccount.address
+                .slice(2, 9)
+                .toUpperCase();
+            if (toUser) payload.toAccount.name = toUser.name;
+            else
+              payload.toAccount.name = payload.toAccount.address
+                .slice(2, 9)
+                .toUpperCase();
+
+            newEvents.push(payload);
+          } else if (payload.fromAccount) {
+            let fromUser = await UserModel.findOne({
+              address: payload.fromAccount.address,
+            });
+            if (fromUser) payload.fromAccount.name = fromUser.name;
+            else
+              payload.fromAccount.name = payload.fromAccount.address
+                .slice(2, 9)
+                .toUpperCase();
+            newEvents.push(payload);
+          } else if (payload.toAccount) {
+            let toUser = await UserModel.findOne({
+              address: payload.toAccount.address,
+            });
+            if (toUser) payload.toAccount.name = toUser.name;
+            else
+              payload.toAccount.name = payload.toAccount.address
+                .slice(2, 9)
+                .toUpperCase();
+            newEvents.push(payload);
+          }
+        }
+      }
+      res.json(newEvents);
+    })
     .catch((e) => {
       res.status(500).send({ message: e.message });
     });
@@ -58,100 +116,106 @@ exports.findByTokenList = (req, res) => {
 exports.add = (req, res) => {
   const payload = req.body;
 
-  let event;
+  let event = new EventModel(payload);
+  event
+    .save()
+    .then(res.status(201).end())
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
 
-  if (payload.isMint) {
-    UserModel.findOne({ address: payload.toAccount.address })
-      .then((user) => {
-        payload.toAccount.name = user.name;
-        event = new EventModel(payload);
-        event
-          .save()
-          .then(res.status(201).end())
-          .catch((err) => {
-            res.status(500).send({ message: err.message });
-          });
-      })
-      .catch((err) => {
-        res.status(500).send({ message: err.message });
-      });
-  } else {
-    if (payload.fromAccount && payload.toAccount) {
-      let address = [payload.fromAccount.address, payload.toAccount.address];
-      UserModel.find({ address: { $in: address } })
-        .then((user) => {
-          let userFilter;
-          userFilter = user.filter((el) => {
-            return el.address === payload.fromAccount.address;
-          });
-          if (userFilter.length > 0)
-            payload.fromAccount.name = userFilter[0].name;
-          else
-            payload.fromAccount.name = payload.fromAccount.address
-              .slice(2, 9)
-              .toUpperCase();
+  // if (payload.isMint) {
+  //   UserModel.findOne({ address: payload.toAccount.address })
+  //     .then((user) => {
+  //       payload.toAccount.name = user.name;
+  //       event = new EventModel(payload);
+  //       event
+  //         .save()
+  //         .then(res.status(201).end())
+  //         .catch((err) => {
+  //           res.status(500).send({ message: err.message });
+  //         });
+  //     })
+  //     .catch((err) => {
+  //       res.status(500).send({ message: err.message });
+  //     });
+  // } else {
+  //   if (payload.fromAccount && payload.toAccount) {
+  //     let address = [payload.fromAccount.address, payload.toAccount.address];
+  //     UserModel.find({ address: { $in: address } })
+  //       .then((user) => {
+  //         let userFilter;
+  //         userFilter = user.filter((el) => {
+  //           return el.address === payload.fromAccount.address;
+  //         });
+  //         if (userFilter.length > 0)
+  //           payload.fromAccount.name = userFilter[0].name;
+  //         else
+  //           payload.fromAccount.name = payload.fromAccount.address
+  //             .slice(2, 9)
+  //             .toUpperCase();
 
-          userFilter = user.filter((el) => {
-            return el.address === payload.toAccount.address;
-          });
-          if (userFilter.length > 0)
-            payload.toAccount.name = userFilter[0].name;
-          else
-            payload.toAccount.name = payload.toAccount.address
-              .slice(2, 9)
-              .toUpperCase();
+  //         userFilter = user.filter((el) => {
+  //           return el.address === payload.toAccount.address;
+  //         });
+  //         if (userFilter.length > 0)
+  //           payload.toAccount.name = userFilter[0].name;
+  //         else
+  //           payload.toAccount.name = payload.toAccount.address
+  //             .slice(2, 9)
+  //             .toUpperCase();
 
-          event = new EventModel(payload);
-          event
-            .save()
-            .then(res.status(201).end())
-            .catch((err) => {
-              res.status(500).send({ message: err.message });
-            });
-        })
-        .catch((err) => {
-          res.status(500).send({ message: err.message });
-        });
-    } else if (payload.fromAccount && !payload.toAccount) {
-      UserModel.findOne({ address: payload.fromAccount.address })
-        .then((user) => {
-          if (user) payload.fromAccount.name = user.name;
-          else
-            payload.fromAccount.name = payload.fromAccount.address
-              .slice(2, 9)
-              .toUpperCase();
-          event = new EventModel(payload);
-          event
-            .save()
-            .then(res.status(201).end())
-            .catch((err) => {
-              res.status(500).send({ message: err.message });
-            });
-        })
-        .catch((err) => {
-          res.status(500).send({ message: err.message });
-        });
-    } else if (!payload.fromAccount && payload.toAccount) {
-      UserModel.findOne({ address: payload.toAccount.address })
-        .then((user) => {
-          if (user) payload.toAccount.name = user.name;
-          else
-            payload.toAccount.name = payload.toAccount.address
-              .slice(2, 9)
-              .toUpperCase();
-          event = new EventModel(payload);
-          event
-            .save()
-            .then(res.status(201).end())
-            .catch((err) => {
-              res.status(500).send({ message: err.message });
-            });
-        })
-        .catch((err) => {
-          res.status(500).send({ message: err.message });
-        });
-    }
-  }
+  //         event = new EventModel(payload);
+  //         event
+  //           .save()
+  //           .then(res.status(201).end())
+  //           .catch((err) => {
+  //             res.status(500).send({ message: err.message });
+  //           });
+  //       })
+  //       .catch((err) => {
+  //         res.status(500).send({ message: err.message });
+  //       });
+  //   } else if (payload.fromAccount && !payload.toAccount) {
+  //     UserModel.findOne({ address: payload.fromAccount.address })
+  //       .then((user) => {
+  //         if (user) payload.fromAccount.name = user.name;
+  //         else
+  //           payload.fromAccount.name = payload.fromAccount.address
+  //             .slice(2, 9)
+  //             .toUpperCase();
+  //         event = new EventModel(payload);
+  //         event
+  //           .save()
+  //           .then(res.status(201).end())
+  //           .catch((err) => {
+  //             res.status(500).send({ message: err.message });
+  //           });
+  //       })
+  //       .catch((err) => {
+  //         res.status(500).send({ message: err.message });
+  //       });
+  //   } else if (!payload.fromAccount && payload.toAccount) {
+  //     UserModel.findOne({ address: payload.toAccount.address })
+  //       .then((user) => {
+  //         if (user) payload.toAccount.name = user.name;
+  //         else
+  //           payload.toAccount.name = payload.toAccount.address
+  //             .slice(2, 9)
+  //             .toUpperCase();
+  //         event = new EventModel(payload);
+  //         event
+  //           .save()
+  //           .then(res.status(201).end())
+  //           .catch((err) => {
+  //             res.status(500).send({ message: err.message });
+  //           });
+  //       })
+  //       .catch((err) => {
+  //         res.status(500).send({ message: err.message });
+  //       });
+  //   }
+  // }
 };
 
 exports.findMinterByTokenId = (req, res) => {

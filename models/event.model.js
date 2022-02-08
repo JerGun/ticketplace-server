@@ -27,6 +27,7 @@ const eventSchema = new Schema(
       name: String,
       isVerify: Boolean,
     },
+    price: String,
     transaction: String,
   },
   { timestamps: false, versionKey: false }
