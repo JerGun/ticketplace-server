@@ -153,3 +153,20 @@ exports.add = (req, res) => {
     }
   }
 };
+
+exports.findMinterByTokenId = (req, res) => {
+  const { tokenId } = req.params;
+  EventModel.findOne({ tokenId: tokenId, eventType: "Minted" })
+    .then((event) => {
+      UserModel.findOne({ address: event.toAccount.address })
+        .then((user) => {
+          res.json(user);
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    })
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
+};
