@@ -8,10 +8,19 @@ exports.findAll = (req, res) => {
     });
 };
 
-exports.findAddress = (req, res) => {
+exports.findByAddress = (req, res) => {
   const { address } = req.params;
   UserModel.findOne({ address })
     .then((user) => res.json(user))
+    .catch((e) => {
+      res.status(500).send({ message: e.message });
+    });
+};
+
+exports.findByAddressList = (req, res) => {
+  const { address } = req.body;
+  UserModel.find({ address: { $in: address } })
+    .then((users) => res.json(users))
     .catch((e) => {
       res.status(500).send({ message: e.message });
     });
