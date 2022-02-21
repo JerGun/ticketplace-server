@@ -3,8 +3,8 @@ const UserModel = require("../models/user.model");
 exports.findAll = (req, res) => {
   UserModel.find()
     .then((users) => res.json(users))
-    .catch((e) => {
-      res.status(500).send({ message: e.message });
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
     });
 };
 
@@ -12,8 +12,8 @@ exports.findByAddress = (req, res) => {
   const { address } = req.params;
   UserModel.findOne({ address })
     .then((user) => res.json(user))
-    .catch((e) => {
-      res.status(500).send({ message: e.message });
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
     });
 };
 
@@ -21,8 +21,8 @@ exports.findByAddressList = (req, res) => {
   const { address } = req.body;
   UserModel.find({ address: { $in: address } })
     .then((users) => res.json(users))
-    .catch((e) => {
-      res.status(500).send({ message: e.message });
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
     });
 };
 
