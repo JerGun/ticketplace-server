@@ -10,7 +10,7 @@ const CLIENT_ORIGIN =
 // (eg. unsubscribe) in the future.
 module.exports = {
   confirm: (id) => ({
-    subject: "React Confirm Email",
+    subject: "Ticketplace: Please verify your email address",
     html: `
       <a href='${CLIENT_ORIGIN}/confirm/${id}'>
         click to confirm email
