@@ -27,8 +27,8 @@ exports.findByAddressList = (req, res) => {
 };
 
 exports.checkEmailExist = (req, res) => {
-  const payload = req.body;
-  UserModel.findOne({ email: payload.email, verify: payload.verify })
+  const { email } = req.params;
+  UserModel.findOne({ email: email })
     .then((user) => res.json(user))
     .catch((err) => {
       res.status(500).send({ message: err.message });
