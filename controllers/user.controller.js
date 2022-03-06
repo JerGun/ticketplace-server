@@ -26,6 +26,15 @@ exports.findByAddressList = (req, res) => {
     });
 };
 
+exports.checkEmailExist = (req, res) => {
+  const payload = req.body;
+  UserModel.findOne({ email: payload.email, verify: payload.verify })
+    .then((user) => res.json(user))
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+};
+
 exports.add = (req, res) => {
   const payload = req.body;
   const user = new UserModel(payload);
