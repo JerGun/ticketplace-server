@@ -12,7 +12,7 @@ module.exports = {
   confirm: (id) => ({
     subject: "Ticketplace: Please verify your email address",
     html: `
-      <a href='${CLIENT_ORIGIN}/confirm/${id}'>
+      <a href='${CLIENT_ORIGIN}/#/confirm/${id}'>
         click to confirm email
       </a>
     `,
