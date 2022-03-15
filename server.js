@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const user = require("./routes/user.routes");
 const email = require("./routes/email.routes");
 const event = require("./routes/event.routes");
+const verification = require("./routes/verification.routes");
 
 const app = express();
 
@@ -48,7 +49,8 @@ app.get("/", (req, res) => {
 
 app.use("/", user);
 app.use("/", email);
-app.use("/", event);
+// app.use("/", event);
+app.use("/verification", verification);
 
 const PORT = process.env.PORT || 9000;
 if (process.env.NODE_ENV !== "test") {

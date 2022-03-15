@@ -1,4 +1,5 @@
 const UserModel = require("../models/user.model");
+const VerificationModel = require("../models/verification.model");
 
 exports.findAll = (req, res) => {
   UserModel.find()
@@ -37,10 +38,30 @@ exports.checkEmailExist = (req, res) => {
 
 exports.add = (req, res) => {
   const payload = req.body;
-  const user = new UserModel(payload);
+  const userPayload = {
+    address: payload.address,
+    email: payload.email,
+    name: payload.name,
+    verify: payload.verify,
+  };
+  const verificationPayload = {
+    address: payload.address,
+    fullName: payload.fullName,
+    social: payload.social,
+    post: payload.post,
+  };
+  const user = new UserModel(userPayload);
+  const verification = VerificationModel(verificationPayload);
   user
     .save()
-    .then(res.status(201).end())
+    .then(() => {
+      verification
+        .save()
+        .then(res.status(201).end())
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    })
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
