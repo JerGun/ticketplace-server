@@ -2,12 +2,21 @@ const VerificationModel = require("../models/verification.model");
 const UserModel = require("../models/user.model");
 
 exports.findAll = (req, res) => {
-    VerificationModel.find()
-      .then((users) => res.json(users))
-      .catch((err) => {
-        res.status(500).send({ message: err.message });
-      });
-  };
+  VerificationModel.find()
+    .then((requests) => res.json(requests))
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+};
+
+exports.findByAddress = (req, res) => {
+  const { address } = req.params;
+  VerificationModel.findOne({ address })
+    .then((request) => res.json(request))
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+};
 
 exports.add = (req, res) => {
   const payload = req.body;

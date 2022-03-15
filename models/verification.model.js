@@ -7,7 +7,7 @@ const verificationSchema = new Schema(
     fullName: String,
     social: String,
     post: String,
-    requestDate: { type : Date, default: Date.now },
+    requestAt: { type : Date, default: Date.now },
   },
   { timestamps: true, versionKey: false }
 );

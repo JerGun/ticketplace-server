@@ -1,5 +1,6 @@
 const res = require("express/lib/response");
 const UserModel = require("../models/user.model");
+const VerificationModel = require("../models/verification.model");
 const sendEmail = require("../templates/email.send");
 const templates = require("../templates/email.templates");
 
@@ -12,16 +13,18 @@ const msgs = {
 };
 
 exports.collectEmail = (req, res) => {
-  const { address, name, email } = req.body;
+  const { address, name, email, fullName, social, post } = req.body;
 
   UserModel.findOne({ address })
     .then((user) => {
       // We have a new user! Send them a confirmation email.
       if (!user) {
         UserModel.create({ address, name, email })
-          .then((newUser) =>
-            sendEmail(newUser.email, templates.confirm(newUser._id))
-          )
+          .then((newUser) => {
+            if (fullName && social && post)
+              VerificationModel.create({ address, fullName, social, post });
+            sendEmail(newUser.email, templates.confirm(newUser._id));
+          })
           .then(() => res.json({ msg: msgs.confirm }))
           .catch((err) => console.log(err));
       } else if (user && !user.email) {
