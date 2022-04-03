@@ -2,7 +2,8 @@ const nodemailer = require("nodemailer");
 
 // The credentials for the email account you want to send mail from.
 const credentials = {
-  host: "mail.privateemail.com",
+  host: "smtp-mail.outlook.com",
+  secureConnection: false,
   port: 587,
   secure: false,
   auth: {
